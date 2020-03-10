@@ -1,0 +1,95 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "extensions_CustomScriptExtension_commandToExecute": {
+            "type": "SecureString"
+        },
+        "virtualMachines_VMProd2_name": {
+            "defaultValue": "VMProd2",
+            "type": "String"
+        },
+        "disks_VMProd2_OsDisk_1_91162438d2ec422cbbf3477db03ae402_externalid": {
+            "defaultValue": "/subscriptions/b2b7dcc2-ed31-4608-a3b3-207c54909828/resourceGroups/RGProd1/providers/Microsoft.Compute/disks/VMProd2_OsDisk_1_91162438d2ec422cbbf3477db03ae402",
+            "type": "String"
+        },
+        "networkInterfaces_VMProd2888_externalid": {
+            "defaultValue": "/subscriptions/b2b7dcc2-ed31-4608-a3b3-207c54909828/resourceGroups/RGProd1/providers/Microsoft.Network/networkInterfaces/VMProd2888",
+            "type": "String"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Compute/virtualMachines",
+            "apiVersion": "2019-07-01",
+            "name": "[parameters('virtualMachines_VMProd2_name')]",
+            "location": "eastus",
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "Standard_B1ls"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "MicrosoftWindowsServer",
+                        "offer": "WindowsServer",
+                        "sku": "2016-Datacenter",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "osType": "Windows",
+                        "name": "[concat(parameters('virtualMachines_VMProd2_name'), '_OsDisk_1_91162438d2ec422cbbf3477db03ae402')]",
+                        "createOption": "FromImage",
+                        "caching": "ReadWrite",
+                        "managedDisk": {
+                            "storageAccountType": "Premium_LRS",
+                            "id": "[parameters('disks_VMProd2_OsDisk_1_91162438d2ec422cbbf3477db03ae402_externalid')]"
+                        },
+                        "diskSizeGB": 127
+                    },
+                    "dataDisks": []
+                },
+                "osProfile": {
+                    "computerName": "[parameters('virtualMachines_VMProd2_name')]",
+                    "adminUsername": "mksharma123",
+                    "windowsConfiguration": {
+                        "provisionVMAgent": true,
+                        "enableAutomaticUpdates": true
+                    },
+                    "secrets": [],
+                    "allowExtensionOperations": true,
+                    "requireGuestProvisionSignal": true
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[parameters('networkInterfaces_VMProd2888_externalid')]"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "apiVersion": "2019-07-01",
+            "name": "[concat(parameters('virtualMachines_VMProd2_name'), '/CustomScriptExtension')]",
+            "location": "eastus",
+            "dependsOn": [
+                "[resourceId('Microsoft.Compute/virtualMachines', parameters('virtualMachines_VMProd2_name'))]"
+            ],
+            "properties": {
+                "autoUpgradeMinorVersion": true,
+                "publisher": "Microsoft.Compute",
+                "type": "CustomScriptExtension",
+                "typeHandlerVersion": "1.9",
+                "settings": {
+                    "fileUris": [
+                        "https://iaasv2tempstoreseasia.blob.core.windows.net/vmextensionstemporary-0003bffdd6cf64ee-20200120104154909/InstallWebServer.ps1?sv=2017-04-17&sr=c&sig=k0BChNEJFVXIspfJAiEYff5e4M7bwqx4E%2BJUyWZ7OOM%3D&se=2020-01-21T10%3A41%3A54Z&sp=rw"
+                    ],
+                    "commandToExecute": "[parameters('extensions_CustomScriptExtension_commandToExecute')]"
+                },
+                "protectedSettings": {}
+            }
+        }
+    ]
+}
